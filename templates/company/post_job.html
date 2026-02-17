@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Post a New Job - JobHub{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px;">
+    <div class="card">
+        <h2 style="margin-bottom: 2rem;">Post a Job Opening</h2>
+        <form id="postJobForm">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem;">Job Title</label>
+                    <input type="text" id="title" required
+                        style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem;">Department</label>
+                    <input type="text" id="department"
+                        style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem;">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem;">Employment Type</label>
+                    <select id="employment_type"
+                        style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem;">
+                        <option value="Full-time">Full-time</option>
+                        <option value="Part-time">Part-time</option>
+                        <option value="Contract">Contract</option>
+                        <option value="Internship">Internship</option>
+                        <option value="Remote">Remote</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem;">Experience Level</label>
+                    <select id="experience_level"
+                        style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem;">
+                        <option value="Entry">Entry</option>
+                        <option value="Mid">Mid</option>
+                        <option value="Senior">Senior</option>
+                        <option value="Lead">Lead</option>
+                        <option value="Executive">Executive</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem;">Main Description</label>
+                <textarea id="description" required
+                    style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; min-height: 200px;"></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem;">Min Salary</label>
+                    <input type="number" id="salary_min"
+                        style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem;">Max Salary</label>
+                    <input type="number" id="salary_max"
+                        style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem;">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem;">Publish Job
+                Posting</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('postJobForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const token = localStorage.getItem('token');
+
+        const jobData = {
+            title: document.getElementById('title').value,
+            department: document.getElementById('department').value,
+            employment_type: document.getElementById('employment_type').value,
+            experience_level: document.getElementById('experience_level').value,
+            description: document.getElementById('description').value,
+            salary_min: parseFloat(document.getElementById('salary_min').value) || 0,
+            salary_max: parseFloat(document.getElementById('salary_max').value) || 0
+        };
+
+        const response = await fetch('/api/jobs/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(jobData)
+        });
+
+        if (response.ok) {
+            window.location.href = '/company/manage-jobs';
+        } else {
+            alert('Failed to post job');
+        }
+    };
+</script>
+{% endblock %}

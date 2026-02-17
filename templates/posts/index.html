@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Professional Feed - JobHub{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px;">
+    <div class="card" style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1rem;">Share an Update</h3>
+        <form id="postForm">
+            <input type="text" id="postTitle" placeholder="Title of your post" required
+                style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; margin-bottom: 1rem;">
+            <textarea id="postContent" placeholder="What's on your mind?" required
+                style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; min-height: 100px; margin-bottom: 1rem;"></textarea>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <input type="file" id="postImage" accept="image/*" style="font-size: 0.875rem;">
+                <button type="submit" class="btn btn-primary">Publish Post</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="feedList" style="display: flex; flex-direction: column; gap: 2rem;">
+        <p>Loading your professional network...</p>
+    </div>
+</div>
+
+<script>
+    async function loadFeed() {
+        const response = await fetch('/api/posts/');
+        const posts = await response.json();
+
+        const container = document.getElementById('feedList');
+        container.innerHTML = posts.map(post => `
+        <div class="card">
+            <div style="display: flex; gap: 1rem; margin-bottom: 1rem; align-items: center;">
+                <div style="width: 48px; height: 48px; background: #e2e8f0; border-radius: 50%;"></div>
+                <div>
+                    <h4 style="margin: 0;">${post.author_email || 'Professional User'}</h4>
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">${new Date(post.created_at).toLocaleDateString()}</p>
+                </div>
+            </div>
+            <h3>${post.title}</h3>
+            <p style="margin-bottom: 1rem;">${post.content}</p>
+            ${post.featured_image ? `<img src="${post.featured_image}" style="width: 100%; border-radius: 0.5rem; margin-bottom: 1rem;">` : ''}
+            <div style="display: flex; gap: 1.5rem; border-top: 1px solid #f1f5f9; padding-top: 1rem;">
+                <button class="btn" style="color: var(--text-muted); padding: 0;" onclick="toggleLike(${post.id})">👍 Like (${post.likes_count})</button>
+                <button class="btn" style="color: var(--text-muted); padding: 0;">💬 Comment</button>
+            </div>
+        </div>
+    `).join('');
+    }
+
+    document.getElementById('postForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Please login to post');
+            window.location.href = '/login';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('title', document.getElementById('postTitle').value);
+        formData.append('content', document.getElementById('postContent').value);
+        const imgFile = document.getElementById('postImage').files[0];
+        if (imgFile) formData.append('featured_image', imgFile);
+
+        const response = await fetch('/api/posts/', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData
+        });
+
+        if (response.ok) {
+            e.target.reset();
+            loadFeed();
+        } else {
+            alert('Failed to publish post');
+        }
+    };
+
+    loadFeed();
+</script>
+{% endblock %}

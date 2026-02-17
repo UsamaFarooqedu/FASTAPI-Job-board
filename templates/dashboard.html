@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - JobHub{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-grid">
+        <aside class="sidebar">
+            <div class="card">
+                <div class="user-profile">
+                    <div class="avatar">{{ user.email[0].upper() if user else 'U' }}</div>
+                    <h3 class="user-name">{{ user.email if user else 'User Name' }}</h3>
+                    <p class="user-role">{{ user.role if user else 'Role' }}</p>
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="#" class="sidebar-link active">📊 Overview</a>
+                    <a href="#" class="sidebar-link">👤 My Profile</a>
+                    <a href="#" class="sidebar-link">💬 Messages</a>
+                    <a href="#" class="sidebar-link">⚙️ Settings</a>
+                </nav>
+            </div>
+        </aside>
+
+        <section id="dashboardContent">
+            <div class="card">
+                <h2 style="margin-bottom: 1.5rem;">Dashboard Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <p class="stat-value">12</p>
+                        <p class="stat-label">Active Jobs</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="stat-value">45</p>
+                        <p class="stat-label">Applications</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="stat-value">128</p>
+                        <p class="stat-label">Profile Views</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem;">Recent Activity</h3>
+                <div id="activityList" class="loading">
+                    <div class="spinner"></div>
+                    Loading activity...
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+    // Authentication check and data loading
+    async function initDashboard() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login';
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/users/me', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error();
+
+            const user = await response.json();
+            document.querySelector('.user-name').textContent = user.email.split('@')[0];
+            document.querySelector('.user-role').textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+
+            // Load role-specific content
+            loadActivity();
+        } catch (e) {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
+    }
+
+    function loadActivity() {
+        const activityList = document.getElementById('activityList');
+        activityList.innerHTML = `
+        <div style="padding: 1rem 0; border-bottom: 1px solid var(--border);">
+            <p><strong>System</strong>: Welcome to your new dashboard!</p>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Just now</p>
+        </div>
+    `;
+    }
+
+    initDashboard();
+</script>
+{% endblock %}
